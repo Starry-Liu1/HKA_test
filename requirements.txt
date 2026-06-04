@@ -1,0 +1,20 @@
+# Core agent workflow
+langgraph>=0.2.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-openai>=0.2.0
+langchain-qwq>=0.2.0
+openai>=1.0.0
+
+# Retrieval and NLP
+faiss-cpu>=1.8.0
+rank-bm25>=0.2.2
+nltk>=3.8.1
+numpy>=1.24.0
+
+# Web search and crawling
+requests>=2.31.0
+crawl4ai>=0.4.0
+
+# Report/evaluation utilities
+mrkdwn-analysis>=0.1.0
