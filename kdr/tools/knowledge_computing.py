@@ -22,7 +22,7 @@ from langgraph.types import Command
 from kdr.config import (INSTANCE_INDEX_PATH,
                         INSTANCE_SCORE_THRESHOLD, INSTANCE_TOP_K, INSTANCE_SELECTION_K,
                         MAX_OUTPUT_RETRY,INSTANCE_FILE_PATH)
-from kdr.model import (QwenEmbedding, get_analyzer_model, get_coder_model,
+from kdr.model import (GenericEmbedding, get_analyzer_model, get_coder_model,
                        get_extractor_model, get_writer_model)
 from kdr.prompts import (CODE_FIX_PROMPT, CODE_GENERATION_PROMPT,
                          EXTRACT_ENTITIES_PROMPT, QUESTION_REWRITE_PROMPT,
@@ -73,9 +73,9 @@ def knowledge_computing(
             "question": question,
             "output_dir": output_dir,
             "figure_id": figure_id,
-            "log_file": log_file,  # 传递log_file以便调试
-            "used_tables": used_tables,  # 传递已使用的表格列表
-            # 初始化其他必需字段
+            "log_file": log_file,  # Pass log_file for debugging.
+            "used_tables": used_tables,  # Pass the list of tables already used.
+            # Initialize other required fields.
             "concepts_code": "",
             "instances_code": "",
             "assertion_code": "",
@@ -291,7 +291,7 @@ def search_instances(
     used_tables = state.get("used_tables", [])
 
     print(f"\n=== STEP: SEARCHING FOR TABLE INSTANCES ===")
-    emb = QwenEmbedding()
+    emb = GenericEmbedding()
     db = FAISS.load_local(
     INSTANCE_INDEX_PATH,
     embeddings=emb,
@@ -989,7 +989,7 @@ def execute_user_code(
             [sys.executable, temp_file_path],
             capture_output=True,
             text=True,
-            timeout=30  # 10秒超时
+            timeout=30  # 30-second timeout.
         )
 
         output = result.stdout

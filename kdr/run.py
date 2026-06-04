@@ -12,8 +12,7 @@ import nltk
 from kdr.graph import knowledgeable_deep_research
 
 REPORT_ID_DICT_PATH = Path(
-    "/Users/liuwenxuan/kdr-web-demo-research-release/"
-    "report_id_dict_w_cite_figure_comments_new.json"
+    "./report_id_dict.json"
 )
 
 QUESTION_ITEMS = [

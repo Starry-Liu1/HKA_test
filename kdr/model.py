@@ -80,7 +80,7 @@ def get_analyzer_model():
 
 
 def get_evaluation_model():
-    """Get evaluation model using deepseek-v3 for triple evaluation."""
+    """Get evaluation model for triple evaluation."""
     config = _chat_config("evaluation")
     return ChatOpenAI(
         model=config["model"],
@@ -92,7 +92,7 @@ def get_evaluation_model():
 
 
 def get_evaluation_model_no_thinking():
-    """Get evaluation model using deepseek-v3 for triple evaluation."""
+    """Get evaluation model without reasoning mode for triple evaluation."""
     config = _chat_config("evaluation_no_thinking")
     return ChatOpenAI(
         model=config["model"],
@@ -103,9 +103,9 @@ def get_evaluation_model_no_thinking():
     )
 
 
-def get_evaluation_model_gpt5_mini():
-    """Get evaluation model using gpt-5-mini for testing."""
-    config = _chat_config("evaluation_gpt5_mini")
+def get_small_evaluation_model():
+    """Get a smaller evaluation model for testing."""
+    config = _chat_config("evaluation_small")
     return ChatOpenAI(
         model=config["model"],
         api_key=config["api_key"],
@@ -114,8 +114,8 @@ def get_evaluation_model_gpt5_mini():
         seed=SEED,
     )
 
-class QwenEmbedding:
-    """Qwen embedding class."""
+class GenericEmbedding:
+    """Generic embedding client."""
 
     def __init__(
         self,
@@ -172,9 +172,9 @@ class QwenEmbedding:
         return self.embedding_func(text)
 
     def embed_documents(self, docs: List[str]) -> List[List[float]]:
-        """Embed documents using Qwen."""
+        """Embed documents."""
         return [self.embedding_func(doc) for doc in docs]
 
     def embed_query(self, query: str) -> List[float]:
-        """Embed query using Qwen."""
+        """Embed query."""
         return self.embedding_func(query)

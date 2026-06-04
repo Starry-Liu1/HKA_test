@@ -29,21 +29,22 @@ class KdrState(TypedDict):
     log_file: str
 
     # Output
-    # 累积生成的文章内容（各子任务写段落后拼接，最后经"终稿润色"）
+
     section_outline: str
     article: str
     article_zh: str
 
 
     # History
-    # => LangGraph 消息缓冲（可累积多轮 System/Tool/AI/Human 消息；也支持在图里清空）
+    # LangGraph message buffer. It can accumulate System/Tool/AI/Human
+    # messages across turns and can also be cleared inside the graph.
     history: Annotated[list, add_messages]
 
-    # Subtask Supervisor （子任务调度/监工）
-    subtasks: List[str]  # 模型拆出来的子任务清单
-    executed_subtasks: List[str]  # 已完成的子任务
-    current_subtask: str  # 当前执行的子任务
-    complete_subtask_flag: bool  # 子任务是否宣布"完成"（触发写段落）
+    # Subtask supervisor
+    subtasks: List[str]  # Subtasks decomposed by the model
+    executed_subtasks: List[str]  # Completed subtasks
+    current_subtask: str  # Current subtask being executed
+    complete_subtask_flag: bool  # Whether the subtask is complete
 
     # Web Search
     retriever: Any

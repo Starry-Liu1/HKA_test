@@ -9,7 +9,7 @@ from langchain_core.documents.base import Document
 
 from kdr.config import (INSTANCE_FILE_PATH, INSTANCE_INDEX_PATH,
                         NLTK_DATA_PATH)
-from kdr.model import QwenEmbedding
+from kdr.model import GenericEmbedding
 
 
 def main():
@@ -37,7 +37,7 @@ def main():
             )
             for instance in instances
         ]
-        vectorstore = FAISS.from_documents(docs, embedding=QwenEmbedding())
+        vectorstore = FAISS.from_documents(docs, embedding=GenericEmbedding())
         vectorstore.save_local(INSTANCE_INDEX_PATH)
 
 
