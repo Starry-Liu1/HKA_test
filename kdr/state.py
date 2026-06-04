@@ -147,3 +147,5 @@ class WsInputState(TypedDict):
 class WsOutputState(TypedDict):
     """Web Search Output State."""
     relevant_information: str
+    url_cache: Dict[str, str]
+    search_results: List[Dict[str, str]]

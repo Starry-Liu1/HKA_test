@@ -62,6 +62,7 @@ def knowledge_computing(
     figure_id = state.get("figure_id", 0)
     figures = state.get("figures", [])
     used_tables = state.get("used_tables", [])
+    num_tool_calls = state.get("num_tool_calls", 0)
     log_file = state.get("log_file", None)
 
     table_info = state.get("table_info", [])
@@ -119,7 +120,8 @@ def knowledge_computing(
         "figure_id": figure_id,
         "history": [ToolMessage(content, tool_call_id=tool_call_id)],
         "used_tables": new_used_tables,
-        "feedback":""
+        "feedback":"",
+        "num_tool_calls": num_tool_calls + 1,
     })
 
 def knowledge_computing_agent():

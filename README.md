@@ -13,12 +13,12 @@ HKA is a multi-agent framework for Knowledgeable Deep Research (KDR). Given an e
 We recommend using Python 3.10 or later.
 
 ```bash
-cd /Users/liuwenxuan/HKA
+cd HKA
 python -m venv .venv
 source .venv/bin/activate
 ```
 
-This repository currently does not include a pinned `requirements.txt`. Install the main dependencies with:
+Install the main dependencies with:
 
 ```bash
 pip install -r requirements.txt
@@ -26,7 +26,14 @@ pip install -r requirements.txt
 
 ## Configuration
 
-The main configuration file is:
+Runtime configuration is read from environment variables. For local development,
+copy the example file and fill in your own credentials:
+
+```bash
+cp .env.example .env
+```
+
+The configuration defaults are defined in:
 
 ```text
 kdr/config.py
@@ -34,12 +41,14 @@ kdr/config.py
 
 Important fields include:
 
-- `INSTANCE_FILE_PATH`: path to the structured table database JSON file, where you can replace it with other structured database.
-- `INSTANCE_INDEX_PATH`: path to the FAISS index for table retrieval, where you can replace it with other structured database.
+- `INSTANCE_FILE_PATH`: path to the structured table database JSON file.
+- `INSTANCE_INDEX_PATH`: path to the FAISS index for table retrieval.
 - `NLTK_DATA_PATH`: local NLTK data directory.
+- `DEFAULT_LLM_API_KEY`, `DEFAULT_LLM_BASE_URL`: shared defaults for LLM-compatible providers.
+- `DEFAULT_CHAT_MODEL`, `DEFAULT_VISION_MODEL`, `DEFAULT_EMBEDDING_MODEL`: shared default model names.
 - `WRITER_MODEL`, `CODER_MODEL`, `PLANNER_MODEL`, `ANALYZER_MODEL`: models used by different agents.
 - `*_API_KEY`, `*_BASEURL`: model API keys and endpoints.
-- `SERPER_API_KEY`: web search API keys.
+- `SERPER_API_KEY` or `SEARCH_API_KEY`: web search API key.
 - `TOTAL_TOOL_CALL`: maximum number of tool calls in the main workflow.
 - `WEB_SEARCH_TOP_K`: number of webpages to retrieve per search query.
 - `INSTANCE_TOP_K`, `INSTANCE_SELECTION_K`: table retrieval and selection settings.
@@ -49,7 +58,7 @@ Important fields include:
 The default entry point is:
 
 ```bash
-cd /Users/liuwenxuan/HKA
+cd HKA
 python -m kdr.run
 ```
 
@@ -85,7 +94,7 @@ HKA/kdr/tools/web_search.py
 ## Quick Start
 
 ```bash
-cd /Users/liuwenxuan/HKA
+cd HKA
 
 # Run the default research question
 python -m kdr.run

@@ -20,6 +20,37 @@ from kdr.utils import (BM25Retriever, extract_context_by_snippet,
                        search_web)
 
 
+def build_retriever_documents(
+    search_results: List[Dict[str, str]],
+    url_cache: Dict[str, str],
+    chunk_size: int = 4000,
+    overlap: int = 500,
+) -> List[str]:
+    """Build writer-retrievable document chunks from fetched web pages."""
+    documents = []
+    step = max(1, chunk_size - overlap)
+    for result in search_results:
+        url = result.get("url", "")
+        content = url_cache.get(url, "") or result.get("content", "")
+        if content == "Can not fetch the page content.":
+            content = result.get("content", "")
+        content = clean_content(content).strip()
+        if not content:
+            continue
+        prefix = (
+            f"Title: {result.get('title', '')}\n"
+            f"URL: {url}\n"
+            f"Snippet: {result.get('snippet', '')}\n"
+        )
+        for start in range(0, len(content), step):
+            chunk = content[start:start + chunk_size].strip()
+            if chunk:
+                documents.append(f"{prefix}Content:\n{chunk}")
+            if start + chunk_size >= len(content):
+                break
+    return documents
+
+
 @tool
 async def web_search(
     search_query: Annotated[str, ..., "the query to search on the web."],
@@ -50,7 +81,11 @@ async def web_search(
 
     relevant_information = response.get("relevant_information", "")
     url_cache = response.get("url_cache", url_cache)
-    retriever = response.get("retriever", retriever)
+    search_results = response.get("search_results", [])
+    retriever_documents = build_retriever_documents(search_results, url_cache)
+    if retriever_documents:
+        retriever.add_documents(retriever_documents)
+        logger.info("Added %d web document chunks to writer retriever", len(retriever_documents))
 
     logger.info(
         "Relevant Information:\n"
@@ -96,14 +131,14 @@ def generate_search_intent(
     search_query = state.get("search_query", "")
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
-
+    history = state.get("history", [])
     model = get_writer_model()
 
     content = prompt.format(
         question=search_query,
         current_subtask=search_query,
         search_query=search_query,
-        history="",
+        history=get_buffer_string(history),
     )
     response = model.invoke([SystemMessage(content)])
     search_intent = response.content
@@ -250,7 +285,7 @@ def clean_content(content: str) -> str:
 
 async def search_webpages(
     state: WsState,
-    web_search_top_k: int = 10,
+    web_search_top_k: int = WEB_SEARCH_TOP_K,
 ):
     """Search webpages (async version to avoid blocking calls)."""
     search_query = state.get("search_query", "")
@@ -323,4 +358,6 @@ def extract_relevant_information(
 
     return {
         "relevant_information": relevant_information,
+        "url_cache": state.get("url_cache", {}),
+        "search_results": search_results,
     }

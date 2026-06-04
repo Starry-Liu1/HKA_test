@@ -40,19 +40,6 @@ def get_planner_model() -> LanguageModelLike:
     )
 
 
-def get_extractor_model() -> LanguageModelLike:
-    """Get extractor model."""
-    config = _chat_config("extractor")
-    return ChatOpenAI(
-        model=config["model"],
-        api_key=config["api_key"],
-        base_url=config["base_url"],
-      #  enable_thinking=False,
-        temperature=1,
-        seed=SEED,
-    )
-
-
 def get_coder_model() -> LanguageModelLike:
     """Get coder model."""
     config = _chat_config("coder")

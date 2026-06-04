@@ -1,9 +1,9 @@
 """Prompts."""
 
 GENERATE_PLAN_PROMPT = (
-    "Your task is to break down the user's question in combination.\n"
-    "When solving each subtask you generate, there are two tools you can use : "
-    "searching from web pages and querying in the knowledge graph. "
+    "Your task is to break down the user's question into clear research subtasks.\n"
+    "When solving each subtask you generate, there are two tools you can use: "
+    "web search and knowledge graph querying. "
     "The questions you generate need to be solvable by the above two tools.\n"
     "\n"
     "This is the user's question:\n"
@@ -20,7 +20,7 @@ GENERATE_PLAN_PROMPT = (
     "- When giving sub-tasks, do not mention what tools to use.\n"
     "- Determine the number of your sub-tasks as you need, but no more than 5.\n"
     "- Just generate research directions, "
-    "without involving information collation and report wrissting.\n"
+    "without involving information collation or report writing.\n"
     "- Return the result as valid JSON that matches the required structured output schema.\n"
 )
 
@@ -29,7 +29,7 @@ SUPERVISOR_PROMPT = (
     "data analysis to write a scientific research article. You have special tools:\n"
     "\n"
     "**web search tool**\n"
-    "You can use this tool to get information from web.\n"
+    "You can use this tool to retrieve information from the web.\n"
     "The tool will search and analyze relevant web pages, "
     "then provide you with helpful information.\n"
     "\n"
@@ -48,7 +48,7 @@ SUPERVISOR_PROMPT = (
     "\n"
     "Remember:\n"
     "- Your task is to conduct research through web search and knowledge computing.\n"
-    "- Try to use the knowledge computing tool first, which can provide you more insight results.\n"
+    "- Try to use the knowledge computing tool first, because it can provide analytical insights.\n"
     "- Investigate the given subtask as thoroughly as possible from multiple perspectives.\n"
     "- **Important**: When you use the knowledge computing tool, "
     "you need to describe your knowledge computing problem in natural language.\n"
@@ -93,7 +93,7 @@ FIND_RELEVANT_INFORMATION_PROMPT = (
     "- Return the relevant information from the **Searched Web Pages** "
     "that is relevant to the **Current Search Query**.\n"
     "- Return information as detailed as possible, do not omit any relevant information.\n"
-    "- Return the url website address when returning relevant information if possible.\n"
+    "- Include the source URL when returning relevant information if possible.\n"
     "- Do not extract some figure contents from the web page.\n"
     "\n"
     "**Inputs:**\n"
@@ -170,7 +170,7 @@ WRITE_SECTION_PROMPT = (
     "Outline of current section:\n"
     "{section_outline}\n"
     "\n"
-    "**⚠️ CRITICAL: Citation and Source Attribution Requirements**\n"
+    "**Citation and Source Attribution Requirements**\n"
     "\n"
     "**ALL citations MUST correspond to the current subtask's content sources:**\n"
     "- Citations reference the \"Potential helpful documents\" provided above for THIS subtask\n"
@@ -202,7 +202,7 @@ WRITE_SECTION_PROMPT = (
     "- If possible, add markdown tables to present more complete and structured information "
     "to users. **Prioritize including tables from source documents**.\n"
     "- Do not use code fence before and after the content.\n"
-    "- Do not include the figure with less read ability. For example, Data not Shown or Not Available.\n"
+    "- Do not include figures with low readability, such as figures showing only \"Data not shown\" or \"Not available\".\n"
     "\n"
     "Please provide the comprehensive content of the section in markdown format.\n"
 )
@@ -220,7 +220,7 @@ FINAL_REFINEMENT_PROMPT = (
     "{article}\n"
     "</article_draft>\n"
     "\n"
-    "**⚠️ CRITICAL: Citation Integration and Re-ordering Requirements**\n"
+    "**Citation Integration and Re-ordering Requirements**\n"
     "\n"
     "**IMPORTANT**: Each subtask section has its own citations [1], [2], [3]... that reference THAT subtask's sources.\n"
     "When integrating all sections into the final report, you MUST:\n"
@@ -268,7 +268,7 @@ FINAL_POLISH_PROMPT = (
     "Current Article:\n"
     "{article}\n"
     "\n"
-    "**⚠️ CRITICAL: Citation Accuracy and Validity Requirements**\n"
+    "**Citation Accuracy and Validity Requirements**\n"
     "\n"
     "**DO NOT create, modify, or fabricate citations**:\n"
     "- Every citation [X] in the text must correspond to an EXISTING reference in the references list\n"
@@ -330,18 +330,6 @@ FINAL_POLISH_PROMPT = (
     "\n"
 )
 
-EXTRACT_ENTITIES_PROMPT = (
-    "You are an information extraction assistant.\n"
-    "Your task is to extract all named entities from the given text.  \n"
-    "For each entity, provide:\n"
-    "- name: the exact entity phrase from the text,\n"
-    "- type: the type or category (e.g., person, organization, product, location, time, etc.),\n"
-    "- description: a brief description based on the context.\n"
-    "\n"
-    "Text: {question}\n"
-    "Output: \n"
-)
-
 CODE_GENERATION_PROMPT = (
     "# You are an intelligent coding assistant designed to write code that executes tasks. "
     "Your responsibilities include:\n"
@@ -386,8 +374,8 @@ RESULT_VALIDITY_PROMPT = (
     "Output True if the chart is potentially useful; otherwise, output False.\n"
     "A chart is considered acceptable if it meets the following conditions:\n"
     "- The chart is not completely blank and contains any visible content\n"
-    "- The chart includes elements (e.g., labels, trends, axes, or data patterns) "
-    "that are loosely related to the question\n"
+    "- The chart do not have obvious data error."
+    "- The chart includes elements (e.g., labels, trends, axes, or data patterns) that are related to the question\n"
     "A chart should be considered invalid only if:\n"
     "- The chart is completely blank or contains no meaningful visual information\n"
     "Only return True or False as your final answer.\n"
@@ -472,22 +460,6 @@ RESULT_NAME_PROMPT = (
     "1. Directly output the title, do not include any additional comments.\n"
 )
 
-
-
-FINAL_TRANSLATION_PROMPT = (
-    "You are a translation assistant. Your task is to translate the given article into Chinese."
-    "Original Article in English:\n"
-    "{article}\n"
-    "\n"
-    "Note:\n"
-    "- Output the complete translated article word by word.\n"
-    "- Do not include any additional comments.\n"
-    "- If the title is missing, add a appropriate title (level 1 header in markdown).\n"
-    "- Adjust the header levels to ensure a consistent structure.\n"
-    "- The markdown title id should be included in the article.\n"
-    "- The conclusion in each section should be translated into \"小结\", and the final conclusion should be translated into \"结论\"\n"
-    "Output:\n"
-)
 
 
 CODE_GENERATION_PROMPT="""
@@ -624,253 +596,4 @@ Consider factors like:
 
 Return your selection as a JSON list of table indices (0-based) in order of relevance:
 {{"selected_indices": [0, 2, 4, ...]}}
-"""
-
-EXTRACT_STRUCTURED_DATA_PROMPT = """
-You are an intelligent data analyst. Extract meaningful, structured data with logical relationships from web search results.
-
-**Search Query:** {search_query}
-
-**Search Results:**
-{search_results}
-
----
-
-## Task: Extract Structured Data with Analytical Value
-
-Identify and extract **structured data that tells a story** - data with patterns, relationships, trends, or insights that can be analyzed.
-
-### Types of Data to Extract:
-
-1. **Time-Series Data** 📈
-   - Trends over time (years, months, quarters)
-   - Changes, growth rates, patterns
-   - Example: Revenue by year, population growth, stock prices
-
-2. **Comparative Data** 🔍
-   - A vs B comparisons
-   - Rankings (Top 10 lists)
-   - Performance metrics across entities
-   - Example: Company revenues comparison, country statistics
-
-3. **Distribution Data** 📊
-   - How something is distributed across categories
-   - Percentages, shares, proportions
-   - Example: Market share by company, age demographics, budget allocation
-
-4. **Causal/Reasoning Data** 🔗
-   - Causes leading to effects
-   - Factors contributing to outcomes
-   - Example: Reasons for customer churn, factors affecting GDP
-
-5. **Classification/Grouping Data** 📁
-   - Items organized by categories
-   - Hierarchical structures
-   - Example: Product categories, organizational structure
-
-6. **Correlation Data** 🔬
-   - Relationships between variables
-   - Statistical associations
-   - Example: Income vs education level, price vs demand
-
----
-
-## Smart Extraction Principles
-
-✅ **Look for ANALYTICAL VALUE** - Can this data be used to make decisions or insights?
-✅ **Preserve RELATIONSHIPS** - Keep connections between data points clear
-✅ **Capture CONTEXT** - What do these numbers mean? Why do they matter?
-✅ **Identify PATTERNS** - Trends, outliers, correlations
-✅ **Think VISUALLY** - Could this be visualized as a chart/graph?
-
----
-
-## Few-Shot Examples
-
-### Example 1: Time-Series with Trend
-
-**Query:** "Apple revenue trend last decade"
-
-**Extract:**
-```json
-{{
-  "data_type": "time_series",
-  "analytical_value": "Shows growth trend and business expansion",
-  "output_data": {{
-    "apple_annual_revenue_2015_2024_billion_usd": [
-      {{"year": 2015, "value": 233.7, "context": "Strong iPhone sales"}},
-      {{"year": 2016, "value": 215.6, "context": "Decline due to market saturation"}},
-      {{"year": 2017, "value": 229.2, "context": "Recovery with iPhone X"}},
-      {{"year": 2018, "value": 265.6, "context": "Services growth"}},
-      {{"year": 2019, "value": 260.2, "context": "Hardware slowdown"}},
-      {{"year": 2020, "value": 274.5, "context": "Pandemic boost to work-from-home"}},
-      {{"year": 2021, "value": 365.8, "context": "5G upgrade cycle"}},
-      {{"year": 2022, "value": 394.3, "context": "Continued growth"}},
-      {{"year": 2023, "value": 383.3, "context": "Macroeconomic headwinds"}},
-      {{"year": 2024, "value": 391.0, "context": "Stabilization"}}
-    ]
-  }},
-  "insights": [
-    "Apple revenue grew 67% from 2015 to 2024",
-    "Major inflection point in 2020-2021 during pandemic",
-    "Services business becoming increasingly important"
-  ],
-  "metadata": {{
-    "entity": "Apple Inc.",
-    "metric": "Annual Revenue",
-    "unit": "billion USD",
-    "trend": "upward_with_fluctuations",
-    "key_periods": "2015-2024"
-  }}
-}}
-```
-
-### Example 2: Comparative Ranking Data
-
-**Query:** "largest economies by GDP 2024"
-
-**Extract:**
-```json
-{{
-  "data_type": "comparative_ranking",
-  "analytical_value": "Shows relative economic power distribution",
-  "output_data": {{
-    "countries_by_gdp_2024_trillion_usd": [
-      {{"rank": 1, "country": "United States", "gdp": 27.97, "share": "26.1%"}},
-      {{"rank": 2, "country": "China", "gdp": 18.56, "share": "17.3%"}},
-      {{"rank": 3, "country": "Germany", "gdp": 4.73, "share": "4.4%"}},
-      {{"rank": 4, "country": "Japan", "gdp": 4.29, "share": "4.0%"}},
-      {{"rank": 5, "country": "India", "gdp": 4.11, "share": "3.8%"}},
-      {{"rank": 6, "country": "United Kingdom", "gdp": 3.59, "share": "3.4%"}},
-      {{"rank": 7, "country": "France", "gdp": 3.18, "share": "3.0%"}},
-      {{"rank": 8, "country": "Italy", "gdp": 2.30, "share": "2.1%"}},
-      {{"rank": 9, "country": "Brazil", "gdp": 2.27, "share": "2.1%"}},
-      {{"rank": 10, "country": "Canada", "gdp": 2.24, "share": "2.1%"}}
-    ]
-  }},
-  "insights": [
-    "US GDP is 1.5x larger than China's despite China having 4x the population",
-    "Top 3 economies account for 47.8% of global GDP",
-    "India expected to surpass Japan and Germany by 2025"
-  ],
-  "metadata": {{
-    "total_entities": 10,
-    "top_three_concentration": "47.8%",
-    "comparison_type": "gdp_ranking",
-    "emerging_trend": "India rising fast"
-  }}
-}}
-```
-
-### Example 3: Distribution Data
-
-**Query:** "global smartphone market share 2024"
-
-**Extract:**
-```json
-{{
-  "data_type": "distribution",
-  "analytical_value": "Shows market competitive landscape",
-  "output_data": {{
-    "smartphone_market_share_2024_by_brand": [
-      {{"brand": "Apple", "share": 23.4, "units_millions": 234.6, "change_yoy": "+3.2%"}},
-      {{"brand": "Samsung", "share": 19.1, "units_millions": 191.4, "change_yoy": "-1.5%"}},
-      {{"brand": "Xiaomi", "share": 13.5, "units_millions": 135.3, "change_yoy": "+8.7%"}},
-      {{"brand": "Oppo", "share": 8.8, "units_millions": 88.2, "change_yoy": "+2.1%"}},
-      {{"brand": "Transsion", "share": 8.1, "units_millions": 81.4, "change_yoy": "+24.3%"}}
-    ]
-  }},
-  "insights": [
-    "Apple leads despite premium pricing due to brand loyalty",
-    "Xiaomi growing fastest among top brands",
-    "Transsion emerging as new player with 24% YoY growth",
-    "Market is relatively concentrated with top 5 holding 73%"
-  ],
-  "metadata": {{
-    "total_market_size": "1.0 billion units",
-    "market_concentration": "high",
-    "growth_brands": ["Xiaomi", "Transsion"],
-    "declining_brands": ["Samsung"]
-  }}
-}}
-```
-
-### Example 4: Causal/Reasoning Data
-
-**Query:** "why do employees quit their jobs"
-
-**Extract:**
-```json
-{{
-  "data_type": "causal_analysis",
-  "analytical_value": "Identifies key drivers of employee churn",
-  "output_data": {{
-    "employee_turnover_reasons_with_percentage": [
-      {{"reason": "Low compensation", "percentage": 42, "impact": "high", "preventable": true}},
-      {{"reason": "Limited career growth", "percentage": 35, "impact": "high", "preventable": true}},
-      {{"reason": "Poor work-life balance", "percentage": 28, "impact": "medium", "preventable": true}},
-      {{"reason": "Lack of recognition", "percentage": 21, "impact": "medium", "preventable": true}},
-      {{"reason": "Bad management", "percentage": 18, "impact": "high", "preventable": true}},
-      {{"reason": "Better job offer", "percentage": 15, "impact": "high", "preventable": false}},
-      {{"reason": "Company restructuring", "percentage": 8, "impact": "medium", "preventable": false}},
-      {{"reason": "Health issues", "percentage": 5, "impact": "variable", "preventable": false}}
-    ]
-  }},
-  "insights": [
-    "Compensation and career growth are top preventable reasons (77% combined)",
-    "Management quality significantly impacts retention",
-    "Non-preventable reasons (better offers, restructuring) account for only 23%"
-  ],
-  "metadata": {{
-    "preventable_percentage": 77,
-    "key_focus_areas": ["compensation", "career_advancement", "management_training"],
-    "data_source": "industry_survey_2024"
-  }}
-}}
-```
-
----
-
-## Output Format Template
-
-```json
-{{
-  "data_type": "time_series|comparative_ranking|distribution|causal_analysis|classification|correlation",
-  "analytical_value": "Brief explanation of what insights this data provides",
-  "output_data": {{
-    "descriptive_key": [
-      {{"field1": "value1", "field2": "value2", "context": "optional context"}}
-    ]
-  }},
-  "insights": [
-    "Key insight 1",
-    "Key insight 2"
-  ],
-  "metadata": {{
-    "entity": "...",
-    "metric": "...",
-    "source_reliability": "high|medium|low",
-    "analysis_recommendations": ["suggestion1", "suggestion2"]
-  }}
-}}
-```
-
----
-
-## Critical Guidelines
-
-✅ **THINK like an analyst** - What story does this data tell?
-✅ **PRESERVE relationships** - Keep causal links, rankings, distributions clear
-✅ **ADD context** - Percentages are more meaningful with totals
-✅ **PROVIDE insights** - What patterns or anomalies exist?
-✅ **BE smart** - Don't just extract numbers, extract MEANING
-✅ **VALID JSON** - Return ONLY the JSON object, no markdown
-
-**What to SKIP:**
-- Random unconnected facts
-- Text without clear data structure
-- Qualitative descriptions without quantifiable data
-- Duplicate or redundant information
-
-Now extract meaningful structured data from the search results:
 """

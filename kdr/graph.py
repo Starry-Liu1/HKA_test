@@ -11,7 +11,7 @@ from langgraph.types import Command
 
 from kdr.config import MAX_OUTPUT_RETRY, TOTAL_TOOL_CALL
 from kdr.model import get_planner_model, get_writer_model
-from kdr.prompts import (FINAL_REFINEMENT_PROMPT, FINAL_POLISH_PROMPT, GENERATE_PLAN_PROMPT, FINAL_TRANSLATION_PROMPT,
+from kdr.prompts import (FINAL_REFINEMENT_PROMPT, FINAL_POLISH_PROMPT, GENERATE_PLAN_PROMPT,
                          SUPERVISOR_PROMPT, WRITE_SECTION_PROMPT,
                          WRITE_SECTION_OUTLINE_PROMPT)
 from kdr.state import KdrInputState, KdrOutputState, KdrState, ResearchSubtasks

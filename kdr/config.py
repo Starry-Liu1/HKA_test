@@ -1,19 +1,40 @@
 """Config."""
 
 import os
+from pathlib import Path
+
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - allows config import before dependency install
+    load_dotenv = None
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if load_dotenv:
+    load_dotenv(PROJECT_ROOT / ".env")
+
+
+def _get_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    return int(value) if value else default
+
+
+def _get_float(name: str, default: float) -> float:
+    value = os.getenv(name)
+    return float(value) if value else default
 
 # PATHS
 
-INSTANCE_FILE_PATH = "./data/databases/all_table_infos.json"
-INSTANCE_INDEX_PATH = "./data/databases/tables"
-NLTK_DATA_PATH = "./nltk_data"
-CHECKPOINTS_PATH = "./data/databases/checkpoints.db"
+INSTANCE_FILE_PATH = os.getenv("INSTANCE_FILE_PATH", "./data/databases/all_table_infos.json")
+INSTANCE_INDEX_PATH = os.getenv("INSTANCE_INDEX_PATH", "./data/databases/tables")
+NLTK_DATA_PATH = os.getenv("NLTK_DATA_PATH", "./nltk_data")
+CHECKPOINTS_PATH = os.getenv("CHECKPOINTS_PATH", "./data/databases/checkpoints.db")
 
 # Langsmith
-LANGSMITH_PROJECT = "kdr"
+LANGSMITH_PROJECT = os.getenv("LANGSMITH_PROJECT", "kdr")
 
 # Model and service configuration
-SEARCH_API_KEY = os.getenv("SEARCH_API_KEY", "")
+SEARCH_API_KEY = os.getenv("SEARCH_API_KEY") or os.getenv("SERPER_API_KEY", "")
 if SEARCH_API_KEY:
     os.environ.setdefault("".join(["SERPER", "_API_KEY"]), SEARCH_API_KEY)
 
@@ -56,7 +77,7 @@ EXTRACTOR_BASEURL = os.getenv("EXTRACTOR_BASEURL", DEFAULT_LLM_BASE_URL)
 EMBEDDING_MODEL = DEFAULT_EMBEDDING_MODEL
 EMBEDDING_API_KEY = os.getenv("EMBEDDING_API_KEY", DEFAULT_LLM_API_KEY)
 BASEURL_EMBEDDING = os.getenv("EMBEDDING_BASEURL", DEFAULT_LLM_BASE_URL)
-EMBEDDING_DIMENSIONS = 1024
+EMBEDDING_DIMENSIONS = _get_int("EMBEDDING_DIMENSIONS", 1024)
 
 MODEL_CONFIGS = {
     "writer": {
@@ -78,24 +99,19 @@ MODEL_CONFIGS = {
         "model": ANALYZER_MODEL,
         "api_key": ANALYZER_API_KEY,
         "base_url": ANALYZER_BASEURL,
-    },
-    "extractor": {
-        "model": EXTRACTOR_MODEL,
-        "api_key": EXTRACTOR_API_KEY,
-        "base_url": EXTRACTOR_BASEURL,
     }
 }
 
-SEED = 42
-MAX_OUTPUT_RETRY = 2
+SEED = _get_int("SEED", 42)
+MAX_OUTPUT_RETRY = _get_int("MAX_OUTPUT_RETRY", 2)
 
 # Supervisor
-TOTAL_TOOL_CALL = 30
+TOTAL_TOOL_CALL = _get_int("TOTAL_TOOL_CALL", 30)
 
 # Web Search
-WEB_SEARCH_TOP_K = 5
+WEB_SEARCH_TOP_K = _get_int("WEB_SEARCH_TOP_K", 5)
 
 # Knowledge Computing
-INSTANCE_TOP_K = 5
-INSTANCE_SELECTION_K = 1
-INSTANCE_SCORE_THRESHOLD = -1.0  # FAISS uses cosine similarity by default
+INSTANCE_TOP_K = _get_int("INSTANCE_TOP_K", 5)
+INSTANCE_SELECTION_K = _get_int("INSTANCE_SELECTION_K", 1)
+INSTANCE_SCORE_THRESHOLD = _get_float("INSTANCE_SCORE_THRESHOLD", -1.0)
