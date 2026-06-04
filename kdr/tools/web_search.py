@@ -17,7 +17,7 @@ from kdr.prompts import FIND_RELEVANT_INFORMATION_PROMPT, SEARCH_INTENT_PROMPT
 from kdr.state import KdrState, WsInputState, WsOutputState, WsState
 from kdr.utils import (BM25Retriever, extract_context_by_snippet,
                        fetch_content_async, format_search_results, get_logger,
-                       search_google_serper)
+                       search_web)
 
 
 @tool
@@ -34,11 +34,8 @@ async def web_search(
     logger = get_logger("kdr.web_search", log_file)
     logger.info("=== Web Search ===")
 
-    print("\n=== INITIATING WEB SEARCH AGENT ===")
     agent = web_search_agent()
 
-    print("Invoking web search agent...")
-    print(f"Search query: {search_query}")
     response = await agent.ainvoke(
         {
             "search_query": search_query,
@@ -54,9 +51,6 @@ async def web_search(
     relevant_information = response.get("relevant_information", "")
     url_cache = response.get("url_cache", url_cache)
     retriever = response.get("retriever", retriever)
-
-    print(f"\n=== WEB SEARCH COMPLETE ===")
-    print(f"Relevant information length: {len(relevant_information)}")
 
     logger.info(
         "Relevant Information:\n"
@@ -76,21 +70,16 @@ async def web_search(
 
 def web_search_agent():
     """Web search agent."""
-    print("Building web search agent graph...")
-
-    # Graph Builder
     builder = StateGraph(
         WsState,
         input_schema=WsInputState,
         output_schema=WsOutputState,
     )
 
-    # Nodes
     builder.add_node("generate_search_intent", generate_search_intent)
     builder.add_node("search_webpages", search_webpages)
     builder.add_node("extract_relevant_information", extract_relevant_information)
 
-    # Edges
     builder.add_edge(START, "generate_search_intent")
     builder.add_edge("generate_search_intent", "search_webpages")
     builder.add_edge("search_webpages", "extract_relevant_information")
@@ -108,23 +97,17 @@ def generate_search_intent(
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
 
-    print("=== STEP: GENERATING SEARCH INTENT ===")
-    print(f"Search query: {search_query}")
-
-    # Generate search intent
     model = get_writer_model()
 
-    # Note: We use search_query as both question and search_query for intent generation
     content = prompt.format(
         question=search_query,
-        current_subtask=search_query,  # Use search_query as current_subtask
+        current_subtask=search_query,
         search_query=search_query,
-        history="",  # Empty history for standalone search
+        history="",
     )
     response = model.invoke([SystemMessage(content)])
     search_intent = response.content
 
-    print(f"Generated search intent: {search_intent[:200]}...")
     logger.info("Search Intent:\n%s\n", search_intent)
 
     return {
@@ -275,52 +258,36 @@ async def search_webpages(
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
 
-    print("=== STEP: SEARCHING WEBPAGES ===")
-    print(f"Query: {search_query}")
-
-    # Search web pages
-    results = search_google_serper(
+    results = search_web(
         query=search_query,
         max_results=web_search_top_k
     )
-    print(f"Found {len(results)} search results")
-
-    # Fetch contents asynchronously
     url_to_fetch = []
     for result in results:
         if result["url"] not in url_cache:
             url_to_fetch.append(result["url"])
 
-    print(f"Fetching {len(url_to_fetch)} new pages...")
     for url in url_to_fetch:
-        # Use async fetch to avoid blocking calls
         content = await fetch_content_async(url)
         url_cache.setdefault(url, content)
 
-    # Truncate contents and filter invalid results
     valid_results = []
     for i, result in enumerate(results):
         raw_content = url_cache[result["url"]]
-        # Retain more chars for higher rank documents
         if i < 5:
             context_chars = 12000
         else:
             context_chars = 10000
-        # Extract original contents according to snippet
         if raw_content != "Can not fetch the page content.":
             context = extract_context_by_snippet(
                 raw_content=raw_content,
                 snippet=result["snippet"],
                 context_chars=context_chars,
             )
-            # Clean the content to remove noise and normalize
             context = clean_content(context)
-            # Only add result if content is valid
-           # if is_valid_content(context):
             result["content"] = context
             valid_results.append(result)
 
-    print(f"Valid results after filtering: {len(valid_results)}")
     logger.info("Fetched Webpages: %d\n", len(valid_results))
 
     return {
@@ -340,10 +307,6 @@ def extract_relevant_information(
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
 
-    print("=== STEP: EXTRACTING RELEVANT INFORMATION ===")
-    print(f"Processing {len(search_results)} search results")
-
-    # Extract relevant information
     model = get_writer_model()
     formatted_results = format_search_results(search_results)
 
@@ -353,11 +316,9 @@ def extract_relevant_information(
         search_result=formatted_results,
     )
 
-    print("Sending extraction request to model...")
     response = model.invoke([SystemMessage(content)])
     relevant_information = response.content
 
-    print(f"Extracted relevant information: {len(relevant_information)} characters")
     logger.info("Relevant Information:\n%s\n", relevant_information)
 
     return {

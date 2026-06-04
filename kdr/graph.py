@@ -24,17 +24,13 @@ from kdr.utils import (BM25Retriever, extract_outline, format_computing_result,
 
 def knowledgeable_deep_research():
     """Knowledgeable Deep Research agent."""
-    # Prepare tools
     tools = [web_search, knowledge_computing, subtask_complete]
-    #tools = [web_search, subtask_complete]
-    # Graph Builder
     builder = StateGraph(
         KdrState,
         input_schema=KdrInputState,
         output_schema=KdrOutputState,
     )
 
-    # Nodes
     builder.add_node(
         "generate_subtask",
         generate_subtask,
@@ -73,8 +69,6 @@ def knowledgeable_deep_research():
         final_polish,
     )
 
-
-    # Edges
     builder.add_edge(START, "generate_subtask")
     builder.add_edge("generate_subtask", "execute_subtask")
     builder.add_edge("supervisor_tool", "supervisor")
@@ -97,7 +91,6 @@ def generate_subtask(
     logger = get_logger("kdr.generate_subtask", log_file)
     logger.info("=== Generate Subtasks ===")
 
-    # Generate subtasks
     model = get_writer_model()
     model_with_structure = model.with_structured_output(
         ResearchSubtasks,
@@ -109,7 +102,6 @@ def generate_subtask(
         SystemMessage(prompt.format(question=research_question)),
     ])
 
-    # Log output
     subtasks = response["parsed"]["subtasks"]
     logger.info(
         "Subtasks:\n"
@@ -133,9 +125,6 @@ def execute_subtask(
     logger = get_logger("kdr.execute_subtask", log_file)
     logger.info("=== Execute Subtask ===")
 
-    # If all subtasks are executed,
-    # exit execute_subtask function,
-    # else get next subtask and execute.
     if (subtasks == executed_subtasks) or (num_tool_calls >= TOTAL_TOOL_CALL):
         logger.info(
             "All subtasks completed\n"
@@ -155,10 +144,6 @@ def execute_subtask(
         update={
             "current_subtask": subtasks[len(executed_subtasks)],
             "complete_subtask_flag": False,
-            # Don't reset figures and used_tables - they should accumulate across subtasks
-            # "figures": [],  # This was causing figure_id to reset
-            # "used_tables": [],  # Also don't reset used tables
-            # Clear previous messages
             "history": [RemoveMessage(id=REMOVE_ALL_MESSAGES)],
         }
     )
@@ -177,11 +162,9 @@ def supervisor(
     logger = get_logger("kdr.supervisor", log_file)
     logger.info("=== Supervisor ===")
 
-    # Complete subtask
     if complete_subtask_flag:
         return Command(goto="write_section_outline")
 
-    # Init prompt
     if not history:
         init_content = prompt.format(
             question=research_question,
@@ -191,18 +174,12 @@ def supervisor(
     else:
         history.append(SystemMessage("Please generate next tool call."))
 
-    # Generate tool calls
     model = get_planner_model()
     tools = [web_search, knowledge_computing, subtask_complete]
-    #####wo web_search
-    #tools = [web_search, subtask_complete]
     model_with_tool = model.bind_tools(tools).with_retry(
         stop_after_attempt=MAX_OUTPUT_RETRY,
     )
-    #print(history)
     response = model_with_tool.invoke(history)
-    #print(response)
-    # Log output
     logger.info(
         "Tool calls:\n"
         "%s\n",
@@ -212,7 +189,6 @@ def supervisor(
         ])
     )
 
-    # Check tool calls
     if not response.tool_calls:
         return Command(goto="write_section_outline")
 
@@ -240,20 +216,17 @@ def write_section_outline(
     logger = get_logger("kdr.write_section", log_file)
     logger.info("=== Write Section Outline ===")
 
-    # Retrieve relevant documents
     relevant_documents = retriever.invoke(current_subtask)
     formatted_documents = ""
     for i, doc in enumerate(relevant_documents):
         formatted_documents += f"Document {i}:\n{doc}\n\n"
 
-    # Relevant figures with analysis results
     formatted_figures = ""
     fig_id_offset = figure_id - len(figures)
     for i, fig in enumerate(figures):
         format_fig = format_computing_result(fig, base_url)
         formatted_figures += f"Figure {i + fig_id_offset}:\n{format_fig}\n\n"
 
-    # Generate section content
     model = get_writer_model()
     article_outline = extract_outline(article)
     content = prompt.format(
@@ -267,7 +240,6 @@ def write_section_outline(
     section_outline = response.content
     logger.info(f"section_outline: {section_outline}")
 
-    # Update execution history
     return {
         "section_outline": section_outline
     }
@@ -291,20 +263,17 @@ def write_section(
     logger = get_logger("kdr.write_section", log_file)
     logger.info("=== Write Section ===")
 
-    # Retrieve relevant documents
     relevant_documents = retriever.invoke(current_subtask)
     formatted_documents = ""
     for i, doc in enumerate(relevant_documents):
         formatted_documents += f"Document {i}:\n{doc}\n\n"
 
-    # Relevant figures with analysis results
     formatted_figures = ""
     fig_id_offset = figure_id - len(figures)
     for i, fig in enumerate(figures):
         format_fig = format_computing_result(fig, base_url)
         formatted_figures += f"Figure {i + fig_id_offset}:\n{format_fig}\n\n"
 
-    # Generate section content
     model = get_writer_model()
     article_outline = extract_outline(article)
     content = prompt.format(
@@ -320,7 +289,6 @@ def write_section(
     logger.info(f"section_content: {section_content}")
     article += section_content
 
-    # Update execution history
     executed_subtasks.append(current_subtask)
     return {
         "article": article,
@@ -342,24 +310,20 @@ def final_refinement(
     logger.info("=== Final Refinement ===")
     used_tables = state.get("used_tables", [])
 
-    # Refinement
     model = get_writer_model()
     content = prompt.format(
         question=research_question,
         article=article,
     )
-    print(content)
     response = model.invoke([SystemMessage(content)])
     final_report = response.content
 
-    # Write file
     with open(os.path.join(output_dir, "report_en.md"), "w", encoding="utf-8") as f:
         f.write(final_report)
     import json
     with open(os.path.join(output_dir, "used_tables.json"), "w", encoding="utf-8") as f:
         json.dump(used_tables, f, ensure_ascii=False, indent=4)
 
-    # Log output
     logger.info(
         "Final report:\n"
         "%s\n",
@@ -383,7 +347,6 @@ def final_polish(
     logger = get_logger("kdr.final_polish", log_file)
     logger.info("=== Final Polish (Second Pass Refinement) ===")
 
-    # Polish the article with focus on overall quality
     model = get_writer_model()
     content = prompt.format(
         question=research_question,
@@ -392,11 +355,9 @@ def final_polish(
     response = model.invoke([SystemMessage(content)])
     polished_report = response.content
 
-    # Write polished version
     with open(os.path.join(output_dir, "report_en.md"), "w", encoding="utf-8") as f:
         f.write(polished_report)
 
-    # Log output
     logger.info(
         "Polished report:\n"
         "%s\n",

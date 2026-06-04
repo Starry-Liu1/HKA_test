@@ -78,42 +78,6 @@ def get_analyzer_model():
         max_retries=3,
     )
 
-
-def get_evaluation_model():
-    """Get evaluation model for triple evaluation."""
-    config = _chat_config("evaluation")
-    return ChatOpenAI(
-        model=config["model"],
-        api_key=config["api_key"],
-        base_url=config["base_url"],
-        temperature=1,
-        seed=SEED,
-    )
-
-
-def get_evaluation_model_no_thinking():
-    """Get evaluation model without reasoning mode for triple evaluation."""
-    config = _chat_config("evaluation_no_thinking")
-    return ChatOpenAI(
-        model=config["model"],
-        api_key=config["api_key"],
-        base_url=config["base_url"],
-        temperature=1,
-        seed=SEED,
-    )
-
-
-def get_small_evaluation_model():
-    """Get a smaller evaluation model for testing."""
-    config = _chat_config("evaluation_small")
-    return ChatOpenAI(
-        model=config["model"],
-        api_key=config["api_key"],
-        base_url=config["base_url"],
-        temperature=1,
-        seed=SEED,
-    )
-
 class GenericEmbedding:
     """Generic embedding client."""
 
@@ -127,12 +91,10 @@ class GenericEmbedding:
 
     def embedding_func(self, text: str) -> List[float]:
         """Embedding function."""
-        print("XXXX")
         client = OpenAI(
             api_key=EMBEDDING_API_KEY,
             base_url=BASEURL_EMBEDDING,
         )
-        print("XXXX")
         emb=None
         try:
             emb = client.embeddings.create(
@@ -145,8 +107,6 @@ class GenericEmbedding:
             i=0
             while i<3:
                 
-                #print("Embedding error, retrying...")
-                #print(text)
                 import time
                 time.sleep(5)
                 emb=None

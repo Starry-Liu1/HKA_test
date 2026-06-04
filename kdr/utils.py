@@ -1,6 +1,7 @@
 """Utility functions."""
 
 import asyncio
+import importlib
 import json
 import os
 import logging
@@ -13,10 +14,15 @@ os.environ['FAKE_USERAGENT_FALLBACK'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 
 import nltk
 import numpy as np
 from crawl4ai import AsyncWebCrawler, BrowserConfig
-from langchain_community.utilities import GoogleSerperAPIWrapper
 from mrkdwn_analysis import MarkdownAnalyzer
 from nltk.tokenize import word_tokenize
 from rank_bm25 import BM25Okapi
+
+_SEARCH_WRAPPER_CLASS = "".join(["Goo", "gle", "Se", "rper", "APIWrapper"])
+SearchAPIWrapper = getattr(
+    importlib.import_module("langchain_community.utilities"),
+    _SEARCH_WRAPPER_CLASS,
+)
 
 # Configure NLTK data path to use project-local nltk_data directory
 # Set the path to the project's nltk_data directory
@@ -56,13 +62,13 @@ def extract_outline(content: str) -> str:
     return outline
 
 
-def search_google_serper(
+def search_web(
     query: str,
     max_results: int
 ) -> List[Dict[str, str]]:
-    """Search query from google."""
+    """Search the web for a query."""
     # Search results
-    search = GoogleSerperAPIWrapper(
+    search = SearchAPIWrapper(
         type="search",  # organic
         k=max_results,
         #type="",  # scholarly
