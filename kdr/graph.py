@@ -204,7 +204,7 @@ def write_section_outline(
     prompt: str = WRITE_SECTION_OUTLINE_PROMPT,
 ):
     """Write section outline."""
-    research_question = state.get("research_question_en", "")
+    research_question = state.get("research_question", "")
     history = state.get("history", [])
     current_subtask = state.get("current_subtask", "")
     figure_id = state.get("figure_id", 0)
@@ -249,7 +249,7 @@ def write_section(
     prompt: str = WRITE_SECTION_PROMPT,
 ):
     """Write section."""
-    research_question = state.get("research_question_en", "")
+    research_question = state.get("research_question", "")
     history = state.get("history", [])
     current_subtask = state.get("current_subtask", "")
     executed_subtasks = state.get("executed_subtasks", [])
