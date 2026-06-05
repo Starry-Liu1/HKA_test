@@ -60,9 +60,7 @@ def knowledge_computing(
     output_dir = state.get("output_dir", "")
     base_url = state.get("base_url", "")
     figure_id = state.get("figure_id", 0)
-    figures = state.get("figures", [])
     used_tables = state.get("used_tables", [])
-    num_tool_calls = state.get("num_tool_calls", 0)
     log_file = state.get("log_file", None)
 
     table_info = state.get("table_info", [])
@@ -94,9 +92,11 @@ def knowledge_computing(
     table_info = response.get("table_info", [])
 
     content = format_computing_result(result, base_url)
+    new_figures = []
+    figure_increment = 0
     if content is not None:
-        figure_id += 1
-        figures.append(result)
+        figure_increment = 1
+        new_figures.append(result)
     else:
         content = (
             "Fail to generate figure and analysis result. "
@@ -117,11 +117,12 @@ def knowledge_computing(
             new_used_tables.append(table_title)
 
     return Command(update={
-        "figure_id": figure_id,
+        "figure_id": figure_increment,
         "history": [ToolMessage(content, tool_call_id=tool_call_id)],
         "used_tables": new_used_tables,
         "feedback":"",
-        "num_tool_calls": num_tool_calls + 1,
+        "num_tool_calls": 1,
+        "figures": new_figures,
     })
 
 def knowledge_computing_agent():

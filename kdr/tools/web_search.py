@@ -58,9 +58,7 @@ async def web_search(
     tool_call_id: Annotated[str, InjectedToolCallId],
 ):
     """Web search tool that searches the webpages for a given query."""
-    num_tool_calls = state.get("num_tool_calls", 0)
-    url_cache = state.get("url_cache", {})
-    retriever = state.get("retriever", BM25Retriever())
+    url_cache = dict(state.get("url_cache", {}))
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
     logger.info("=== Web Search ===")
@@ -83,7 +81,9 @@ async def web_search(
     url_cache = response.get("url_cache", url_cache)
     search_results = response.get("search_results", [])
     retriever_documents = build_retriever_documents(search_results, url_cache)
+    retriever = None
     if retriever_documents:
+        retriever = BM25Retriever()
         retriever.add_documents(retriever_documents)
         logger.info("Added %d web document chunks to writer retriever", len(retriever_documents))
 
@@ -93,14 +93,15 @@ async def web_search(
         relevant_information,
     )
 
-    return Command(
-        update={
-            "url_cache": url_cache,
-            "retriever": retriever,
-            "num_tool_calls": num_tool_calls + 1,
-            "history": [ToolMessage(relevant_information, tool_call_id=tool_call_id)],
-        }
-    )
+    update = {
+        "url_cache": url_cache,
+        "num_tool_calls": 1,
+        "history": [ToolMessage(relevant_information, tool_call_id=tool_call_id)],
+    }
+    if retriever is not None:
+        update["retriever"] = retriever
+
+    return Command(update=update)
 
 
 def web_search_agent():
@@ -289,7 +290,7 @@ async def search_webpages(
 ):
     """Search webpages (async version to avoid blocking calls)."""
     search_query = state.get("search_query", "")
-    url_cache = state.get("url_cache", {})
+    url_cache = dict(state.get("url_cache", {}))
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
 

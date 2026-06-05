@@ -5,6 +5,56 @@ from typing import Annotated, Any, Dict, List, TypedDict
 from langgraph.graph.message import add_messages
 
 
+def merge_dicts(left: Dict[str, str] | None, right: Dict[str, str] | None) -> Dict[str, str]:
+    """Merge dictionary state updates from concurrent tool calls."""
+    merged = {}
+    if left:
+        merged.update(left)
+    if right:
+        merged.update(right)
+    return merged
+
+
+def add_ints(left: int | None, right: int | None) -> int:
+    """Add integer increments from concurrent tool calls."""
+    return (left or 0) + (right or 0)
+
+
+def merge_unique_strings(left: List[str] | None, right: List[str] | None) -> List[str]:
+    """Merge lists while preserving first-seen order."""
+    merged = []
+    for value in (left or []) + (right or []):
+        if value not in merged:
+            merged.append(value)
+    return merged
+
+
+def merge_figures(
+    left: List[Dict[str, str]] | None,
+    right: List[Dict[str, str]] | None,
+) -> List[Dict[str, str]]:
+    """Merge generated figure records from concurrent tool calls."""
+    return (left or []) + (right or [])
+
+
+def merge_retrievers(left: Any, right: Any) -> Any:
+    """Merge BM25Retriever-like objects produced by concurrent web searches."""
+    if left is None:
+        return right
+    if right is None or left is right:
+        return left
+
+    right_docs = getattr(right, "docs", None)
+    if hasattr(left, "add_documents") and isinstance(right_docs, list):
+        left_docs = getattr(left, "docs", [])
+        new_docs = [doc for doc in right_docs if doc not in left_docs]
+        if new_docs:
+            left.add_documents(new_docs)
+        return left
+
+    return right
+
+
 #######
 # State
 #######
@@ -47,12 +97,14 @@ class KdrState(TypedDict):
     complete_subtask_flag: bool  # Whether the subtask is complete
 
     # Web Search
-    retriever: Any
+    retriever: Annotated[Any, merge_retrievers]
+    url_cache: Annotated[Dict[str, str], merge_dicts]
+    num_tool_calls: Annotated[int, add_ints]
 
     # Knowledge Computing
-    figure_id: int
-    figures: List[Dict[str, str]]
-    used_tables: List[str]
+    figure_id: Annotated[int, add_ints]
+    figures: Annotated[List[Dict[str, str]], merge_figures]
+    used_tables: Annotated[List[str], merge_unique_strings]
 
 class KcState(TypedDict):
     """Knowledge Computing State."""

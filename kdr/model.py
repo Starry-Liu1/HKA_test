@@ -1,5 +1,6 @@
 """Model."""
 
+import time
 from typing import List
 
 from langchain_core.language_models import LanguageModelLike
@@ -47,7 +48,6 @@ def get_coder_model() -> LanguageModelLike:
         model=config["model"],
         api_key=config["api_key"],
         base_url=config["base_url"],
-       # enable_thinking=True,
         temperature=1,
         seed=SEED,
     )
@@ -71,49 +71,39 @@ class GenericEmbedding:
     def __init__(
         self,
         model: str = EMBEDDING_MODEL,
-        dimensions: int = EMBEDDING_DIMENSIONS
+        dimensions: int = EMBEDDING_DIMENSIONS,
+        max_retries: int = 3,
+        retry_interval: float = 5.0,
     ):
         self.model = model
         self.dimensions = dimensions
-
-    def embedding_func(self, text: str) -> List[float]:
-        """Embedding function."""
-        client = OpenAI(
+        self.max_retries = max_retries
+        self.retry_interval = retry_interval
+        self.client = OpenAI(
             api_key=EMBEDDING_API_KEY,
             base_url=BASEURL_EMBEDDING,
         )
-        emb=None
-        try:
-            emb = client.embeddings.create(
-                model=self.model,
-                input=text,
-                dimensions=self.dimensions,
-                encoding_format="float",
-            )
-        except:
-            i=0
-            while i<3:
-                
-                import time
-                time.sleep(5)
-                emb=None
-                try:
-                    emb = client.embeddings.create(
-                        model=self.model,
-                        input=text,
-                        dimensions=self.dimensions,
-                        encoding_format="float",
-                    )
-                except:
-                    i=i+1
-                
-                if emb:
-                    break
-                
-        if emb:
-            return emb.data[0].embedding
-        else:
-            return [-99999999999]*self.dimensions
+
+    def embedding_func(self, text: str) -> List[float]:
+        """Embedding function."""
+        last_error = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                embedding = self.client.embeddings.create(
+                    model=self.model,
+                    input=text,
+                    dimensions=self.dimensions,
+                    encoding_format="float",
+                )
+                return embedding.data[0].embedding
+            except Exception as exc:
+                last_error = exc
+                if attempt < self.max_retries:
+                    time.sleep(self.retry_interval)
+
+        raise RuntimeError(
+            f"Failed to create embedding after {self.max_retries} attempts"
+        ) from last_error
 
     def __call__(self, text: str) -> List[float]:
         return self.embedding_func(text)
