@@ -82,8 +82,6 @@ class KdrState(TypedDict):
 
     section_outline: str
     article: str
-    article_zh: str
-
 
     # History
     # LangGraph message buffer. It can accumulate System/Tool/AI/Human
@@ -177,7 +175,10 @@ class ExtractionResults(TypedDict):
 class WsState(TypedDict):
     """Web Search State."""
     # Input
+    research_question: str
+    current_subtask: str
     search_query: str
+    history: list
     url_cache: Dict[str, str]
     log_file: str
 
@@ -191,7 +192,10 @@ class WsState(TypedDict):
 
 class WsInputState(TypedDict):
     """Web Search Input State."""
+    research_question: str
+    current_subtask: str
     search_query: str
+    history: list
     url_cache: Dict[str, str]
     log_file: str
 

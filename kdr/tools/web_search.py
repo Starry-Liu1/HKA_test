@@ -58,6 +58,9 @@ async def web_search(
     tool_call_id: Annotated[str, InjectedToolCallId],
 ):
     """Web search tool that searches the webpages for a given query."""
+    research_question = state.get("research_question", "")
+    current_subtask = state.get("current_subtask", "")
+    history = state.get("history", [])
     url_cache = dict(state.get("url_cache", {}))
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
@@ -67,7 +70,10 @@ async def web_search(
 
     response = await agent.ainvoke(
         {
+            "research_question": research_question,
+            "current_subtask": current_subtask,
             "search_query": search_query,
+            "history": history,
             "url_cache": url_cache,
             "log_file": log_file,
             # Initialize intermediate fields
@@ -130,14 +136,16 @@ def generate_search_intent(
 ):
     """Generate search intent."""
     search_query = state.get("search_query", "")
+    research_question = state.get("research_question", "") or search_query
+    current_subtask = state.get("current_subtask", "") or search_query
     log_file = state.get("log_file", None)
     logger = get_logger("kdr.web_search", log_file)
     history = state.get("history", [])
     model = get_writer_model()
 
     content = prompt.format(
-        question=search_query,
-        current_subtask=search_query,
+        question=research_question,
+        current_subtask=current_subtask,
         search_query=search_query,
         history=get_buffer_string(history),
     )

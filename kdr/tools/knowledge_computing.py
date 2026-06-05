@@ -85,6 +85,7 @@ def knowledge_computing(
             "entities": [],
             "result": {},
             "table_info": table_info,
+            "feedback": "",
             "validity_invalid_count": 0,
         },
     )
@@ -97,6 +98,11 @@ def knowledge_computing(
     if content is not None:
         figure_increment = 1
         new_figures.append(result)
+    elif not table_info:
+        content = (
+            "No relevant structured table was found for this query. "
+            "Use web search or complete this subtask if enough information is available.\n"
+        )
     else:
         content = (
             "Fail to generate figure and analysis result. "
@@ -149,11 +155,25 @@ def knowledge_computing_agent():
 
     builder.add_edge(START, "search_instances")
     builder.add_edge("search_instances", "rerank_tables")
-    builder.add_edge("rerank_tables", "generate_computing_code")
+    builder.add_conditional_edges(
+        "rerank_tables",
+        route_after_table_selection,
+        {
+            "generate_computing_code": "generate_computing_code",
+            "__end__": END,
+        },
+    )
     builder.add_edge("generate_computing_code", "execute_with_auto_repair")
     builder.add_edge("execute_with_auto_repair", "judge_validity")
     builder.add_edge("result_analysis", END)
     return builder.compile()
+
+
+def route_after_table_selection(state: KcState) -> Literal["generate_computing_code", "__end__"]:
+    """Skip code generation when no relevant structured table is available."""
+    if state.get("table_info"):
+        return "generate_computing_code"
+    return "__end__"
 
 
 
